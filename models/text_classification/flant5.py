@@ -64,8 +64,9 @@ def train_tc(epoch, instruction, example, **kwargs):
         "evaluation_strategy": "epoch",
         "save_strategy": "epoch",
         "learning_rate": 5e-5,
-        "per_device_train_batch_size": 16,
-        "per_device_eval_batch_size": 16,
+        "per_device_train_batch_size": 4,
+        "per_device_eval_batch_size": 4,
+        "gradient_accumulation_steps": 4,
         # "per_device_train_batch_size": 8,
         # "per_device_eval_batch_size": 8,
         "num_train_epochs": epoch,
@@ -104,7 +105,7 @@ def train_tc(epoch, instruction, example, **kwargs):
         predictor=model_trainer,
         tokenized_dataset=id_tokenized_ds,
         sample_set="test",
-        batch_size=16,
+        batch_size=4,
     )
     id_te_labels = [i.strip() for i in id_ds["test"]["labels"]]
 

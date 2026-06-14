@@ -1,5 +1,5 @@
 transformers
-pyabsa~=1.16.28
+# pyabsa~=1.16.28
 openai
 numpy~=1.26.0
 autocuda~=0.16

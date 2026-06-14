@@ -3,7 +3,7 @@ import pickle
 from evo_core.nsga2 import nsga2
 
 # Configurations
-generation_num = 20
+generation_num = 10
 population_size = 30
 
 # dataset = 'toy'
@@ -14,7 +14,7 @@ dataset = "Laptop14"
 # dataset = 'Restaurant16'
 
 # plm = "google/flan-t5-base"
-plm = "google/flan-t5-small"
+plm = "google/flan-t5-base"
 # plm = "t5-base"
 # plm = "t5-small"
 # plm = "bert-base-uncased"

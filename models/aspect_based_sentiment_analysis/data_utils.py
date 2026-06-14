@@ -173,7 +173,7 @@ class InstructDatasetLoader:
         )
 
 
-def read_json(data_path, data_type="train"):
+def read_json(data_path, data_type="train", max_samples=1000):
     data = []
 
     files = findfile.find_cwd_files(
@@ -184,6 +184,8 @@ def read_json(data_path, data_type="train"):
         with open(f, "r", encoding="utf8") as fin:
             for line in fin:
                 data.append(json.loads(line))
+    if max_samples is not None:
+        data = data[:max_samples]
     return data
     # if 'train' not in data_type:
     #     return data[:100]

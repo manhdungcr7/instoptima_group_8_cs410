@@ -4,18 +4,33 @@ import requests
 import time
 from pyabsa import TextClassification as TC
 from termcolor import colored
+import json
 
+
+import ast
+import re
 
 def extract_dict(text):
-    start = text.find("{")  # 找到第一个 '{' 的位置
-    end = text.rfind("}")  # 找到最后一个 '}' 的位置
-    if start != -1 and end != -1 and start < end:
-        dict_text = text[start : end + 1]  # 提取字典部分的文本
+    text = text.replace("null", "None").replace("true", "True").replace("false", "False")
+    
+    # Dùng chr(96) để tạo 3 dấu huyền, tránh lỗi cắt code của giao diện
+    ticks = chr(96) * 3 
+    regex_pattern = ticks + r'(?:python|json)?\s*(.*?)\s*' + ticks
+    
+    code_block_match = re.search(regex_pattern, text, re.DOTALL)
+    content_to_parse = code_block_match.group(1) if code_block_match else text
+
+    dict_pattern = re.compile(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', re.DOTALL)
+    matches = dict_pattern.findall(content_to_parse)
+
+    for match in matches:
         try:
-            dictionary = eval(dict_text)  # 使用 eval 将文本转换为字典对象
-            return dictionary
-        except SyntaxError as e:
-            print(e)
+            parsed_dict = ast.literal_eval(match.strip())
+            if isinstance(parsed_dict, dict) and len(parsed_dict) > 0:
+                return parsed_dict
+        except Exception:
+            continue
+            
     return None
 
 
@@ -132,8 +147,19 @@ Please only output all (not incremental) the new operations (with detailed steps
             new_operators = extract_dict(_response)
             print("New Operators:", new_operators)
             if new_operators:
-                self.message_history = message_history
-                self.message_history.pop()
+                # Cách chuyển đổi JSON an toàn 100%
+                if isinstance(message_history, str):
+                    try:
+                        # Thay vì dùng eval, ta parse JSON
+                        self.message_history = json.loads(message_history)
+                    except Exception as e:
+                        print("Lỗi parse history:", e)
+                        self.message_history = []
+                else:
+                    self.message_history = message_history
+                
+                if len(self.message_history) > 0:
+                    self.message_history.pop()
                 return new_operators
             else:
                 return self.evolve(operators, objectives, **kwargs)

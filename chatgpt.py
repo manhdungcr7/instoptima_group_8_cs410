@@ -18,13 +18,11 @@ import openai
 
 class Chatbot:
     def __init__(self, system_prompt=None, model='gpt-3.5-turbo', log_dir='logs', api_key=None, **kwargs):
-        print(os.environ)
-        try:
+        if api_key:
+            openai.api_key = api_key
+        else:
             assert os.environ.get("OPENAI_API_KEY"), "Please set OPENAI_API_KEY environment variable."
             openai.api_key = os.environ.get("OPENAI_API_KEY")
-        except Exception as e:
-            print("Please set OPENAI_API_KEY environment variable.")
-            openai.api_key = api_key
         self._chatbot = None
         self._model = model
         if system_prompt:
@@ -134,7 +132,7 @@ if __name__ == '__main__':
 
     app = flask.Flask(__name__)
 
-    chatbot = Chatbot(system_prompt=None, model='gpt-3.5-turbo-0613')
+    chatbot = Chatbot(system_prompt=None, model='gpt-3.5-turbo')
 
 
     @app.route('/chat', methods=['POST'])

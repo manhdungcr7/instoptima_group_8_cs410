@@ -102,22 +102,43 @@ class InstructDatasetLoader:
 
 
 def read_text(data_path, data_type="train"):
+    """
+    Sử dụng Hugging Face datasets để tải SST2 thay vì đọc file local bị thiếu.
+    """
+    from datasets import load_dataset
+    
     data = []
+    print(f"Đang tải dataset {data_path} từ Hugging Face Hub (split: {data_type})...")
+    
+    # 1. Tải dataset SST2 (Glue)
+    try:
+        dataset = load_dataset("glue", "sst2")
+    except Exception as e:
+        print(f"Lỗi tải dataset: {e}")
+        return []
 
-    files = findfile.find_cwd_files(
-        [data_path, "tc", data_type, ".dat"], exclude_key=[".txt"]
-    )
-    for f in files:
-        print(f)
-        with open(f, "r", encoding="utf8") as fin:
-            for line in fin.readlines():
-                text, _label = line.strip().split("$LABEL$")
-                _label = _label.strip()
-                label = "negative" if _label == "0" else "positive"
-                data.append({"text": text, "label": label})
-
-    return data[:1000]
-    # if 'train' not in data_type:
-    #     return data[:100]
-    # else:
-    #     return data
+    # 2. Xử lý chia tách (split)
+    # SST2 của glue có các split: 'train', 'validation', 'test'.
+    # Tuy nhiên split 'test' không có nhãn (label). Do đó, tác giả thường
+    # dùng 'validation' làm test set.
+    if data_type == "train":
+        split_data = dataset["train"]
+    else:
+        split_data = dataset["validation"]
+        
+    # 3. Chuẩn hóa format
+    # Theo format của tác giả: data.append({"text": text, "label": label})
+    # Label của SST2 gốc: 0 (negative), 1 (positive)
+    for row in split_data:
+        text = row["sentence"].strip()
+        # Chuyển đổi nhãn số thành chuỗi như format cũ mong đợi
+        label = "negative" if row["label"] == 0 else "positive"
+        data.append({"text": text, "label": label})
+        
+    # 4. Cắt giảm dữ liệu để chạy thử (giống với ý định cũ của tác giả)
+    # Tác giả lấy 1000 mẫu để train cho nhanh.
+    # Nếu muốn chạy đầy đủ toàn bộ dataset, bạn thay đổi con số ở đây.
+    limit = 1000 if data_type == "train" else 500
+    print(f"Đã tải thành công {len(data[:limit])} mẫu cho {data_type}.")
+    
+    return data[:limit]

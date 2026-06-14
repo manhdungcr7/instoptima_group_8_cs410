@@ -19,7 +19,7 @@ def extract_inst(text):
 class InstructOperator(object):
     def __init__(self, checkpoint=None):
         self.params = {"prompt": None, "message_history": None, "password": "Password!"}
-        self.chatter_url = "https://chatter.pagekite.me/chat"
+        self.chatter_url = "http://127.0.0.1:6789/chat"
 
         if checkpoint:
             self.pareto_classifier = TC.TextClassifier(checkpoint=checkpoint)

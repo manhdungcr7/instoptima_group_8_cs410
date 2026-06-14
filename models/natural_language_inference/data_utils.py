@@ -105,26 +105,54 @@ import chardet
 
 
 def read_text(data_path, data_type="train"):
+    """
+    Sử dụng Hugging Face datasets để tải SNLI thay vì đọc file local bị thiếu.
+    """
+    from datasets import load_dataset
+    
     data = []
+    print(f"Đang tải dataset {data_path} từ Hugging Face Hub (split: {data_type})...")
+    
+    # 1. Tải dataset SNLI
+    try:
+        # Tải tập snli chuẩn từ Hugging Face
+        dataset = load_dataset("snli")
+    except Exception as e:
+        print(f"Lỗi tải dataset: {e}")
+        return []
 
-    files = findfile.find_cwd_files(
-        [data_path, "nli", data_type, ".dat"], exclude_key=[".txt"]
-    )
-    for f in files:
-        print(f)
-        # determine the encoding of the file
-        rawdata = open(f, "rb").read()
-        result = chardet.detect(rawdata)
-        file_encoding = result["encoding"]
-        with open(f, "r", encoding=file_encoding) as fin:
-            for line in fin.readlines():
-                text, _label = line.strip().split("$LABEL$")
-                _label = _label.strip()
-                data.append({"text": text, "label": _label})
+    # 2. Xử lý chia tách (split)
+    if data_type == "train":
+        split_data = dataset["train"]
+    elif data_type == "test":
+        split_data = dataset["test"]
+    else:
+        split_data = dataset["validation"]
+        
+    # 3. Chuẩn hóa format
+    # Map nhãn số của SNLI sang chữ để khớp với Prompt
+    label_map = {0: "entailment", 1: "neutral", 2: "contradiction"}
+    
+    # Số lượng dữ liệu cần lấy (test nhanh)
+    limit = 1000 if data_type == "train" else 500
 
-    return data[:1000]
-
-    # if 'train' not in data_type:
-    #     return data[:100]
-    # else:
-    #     return data
+    for row in split_data:
+        label_id = row["label"]
+        # Bỏ qua các mẫu có nhãn -1 (thiếu nhãn)
+        if label_id in label_map:
+            premise = row["premise"].strip()
+            hypothesis = row["hypothesis"].strip()
+            
+            # Ghép 2 câu lại với format giống ví dụ trong Prompt: "Câu 1" "Câu 2"
+            text = f'"{premise}" "{hypothesis}"'
+            label = label_map[label_id]
+            
+            data.append({"text": text, "label": label})
+            
+            # Đủ số lượng thì dừng lại cho nhanh
+            if len(data) >= limit:
+                break
+                
+    print(f"Đã tải thành công {len(data)} mẫu cho {data_type}.")
+    
+    return data

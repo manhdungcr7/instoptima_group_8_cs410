@@ -40,10 +40,7 @@ InstOptima/
 ├── nsga2_result_nli.pkl           # Kết quả NSGA-II - SNLI (NLI)
 ├── noinstruct_*.pkl                # Kết quả baseline NoInstruct (3 dataset + tổng hợp)
 ├── raninstruct_*.pkl               # Kết quả baseline RanInstruct (3 dataset + tổng hợp)
-├── compare_tc.pkl                  # Kết quả so sánh fine-tune NoInstruct vs InstOptima (SST2)
-│
-└── paper_fig2_trajectory.png, paper_fig3_pareto.png,
-    paper_table1_*.png, paper_evolution.gif    # Hình minh họa dùng trong slide
+└──compare_tc.pkl                  # Kết quả so sánh fine-tune NoInstruct vs InstOptima (SST2)
 ```
 
 ## 2. Cài đặt môi trường
